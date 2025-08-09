@@ -99,29 +99,177 @@ TENDER_METHODS = [
     TenderMethod(code="Tasarım Yarışması", description="Tasarım Yarışması (Design competition)")
 ]
 
-PROVINCES = [
-    Province(name="ADANA"), Province(name="ADIYAMAN"), Province(name="AFYONKARAHİSAR"), Province(name="AĞRI"), 
-    Province(name="AKSARAY"), Province(name="AMASYA"), Province(name="ANKARA"), Province(name="ANTALYA"), 
-    Province(name="ARDAHAN"), Province(name="ARTVİN"), Province(name="AYDIN"), Province(name="BALIKESİR"),
-    Province(name="BARTIN"), Province(name="BATMAN"), Province(name="BAYBURT"), Province(name="BİLECİK"), 
-    Province(name="BİNGÖL"), Province(name="BİTLİS"), Province(name="BOLU"), Province(name="BURDUR"), 
-    Province(name="BURSA"), Province(name="ÇANAKKALE"), Province(name="ÇANKIRI"), Province(name="ÇORUM"),
-    Province(name="DENİZLİ"), Province(name="DİYARBAKIR"), Province(name="DÜZCE"), Province(name="EDİRNE"), 
-    Province(name="ELAZIĞ"), Province(name="ERZİNCAN"), Province(name="ERZURUM"), Province(name="ESKİŞEHİR"), 
-    Province(name="GAZİANTEP"), Province(name="GİRESUN"), Province(name="GÜMÜŞHANE"), Province(name="HAKKARİ"), 
-    Province(name="HATAY"), Province(name="IĞDIR"), Province(name="ISPARTA"), Province(name="İSTANBUL"), 
-    Province(name="İZMİR"), Province(name="KAHRAMANMARAŞ"), Province(name="KARABÜK"), Province(name="KARAMAN"), 
-    Province(name="KARS"), Province(name="KASTAMONU"), Province(name="KAYSERİ"), Province(name="KIRIKKALE"), 
-    Province(name="KIRKLARELI"), Province(name="KIRŞEHİR"), Province(name="KİLİS"), Province(name="KOCAELİ"), 
-    Province(name="KONYA"), Province(name="KÜTAHYA"), Province(name="MALATYA"), Province(name="MANİSA"), 
-    Province(name="MARDİN"), Province(name="MERSİN"), Province(name="MUĞLA"), Province(name="MUŞ"), 
-    Province(name="NEVŞEHİR"), Province(name="NİĞDE"), Province(name="ORDU"), Province(name="OSMANİYE"), 
-    Province(name="RİZE"), Province(name="SAKARYA"), Province(name="SAMSUN"), Province(name="SİİRT"), 
-    Province(name="SİNOP"), Province(name="SİVAS"), Province(name="ŞANLIURFA"), Province(name="ŞIRNAK"), 
-    Province(name="TEKİRDAĞ"), Province(name="TOKAT"), Province(name="TRABZON"), Province(name="TUNCELİ"), 
-    Province(name="UŞAK"), Province(name="VAN"), Province(name="YALOVA"), Province(name="YOZGAT"), 
-    Province(name="ZONGULDAK")
-]
+# Province plate number to API ID mapping
+# Users provide standard Turkish plate numbers (1-81), we convert to API IDs (245-325)
+PLATE_TO_API_ID = {
+    1: 245,  # ADANA
+    2: 246,  # ADIYAMAN
+    3: 247,  # AFYONKARAHİSAR
+    4: 248,  # AĞRI
+    5: 250,  # AMASYA
+    6: 251,  # ANKARA
+    7: 252,  # ANTALYA
+    8: 254,  # ARTVİN
+    9: 255,  # AYDIN
+    10: 256,  # BALIKESİR
+    11: 260,  # BİLECİK
+    12: 261,  # BİNGÖL
+    13: 262,  # BİTLİS
+    14: 263,  # BOLU
+    15: 264,  # BURDUR
+    16: 265,  # BURSA
+    17: 266,  # ÇANAKKALE
+    18: 267,  # ÇANKIRI
+    19: 268,  # ÇORUM
+    20: 269,  # DENİZLİ
+    21: 270,  # DİYARBAKIR
+    22: 272,  # EDİRNE
+    23: 273,  # ELAZIĞ
+    24: 274,  # ERZİNCAN
+    25: 275,  # ERZURUM
+    26: 276,  # ESKİŞEHİR
+    27: 277,  # GAZİANTEP
+    28: 278,  # GİRESUN
+    29: 279,  # GÜMÜŞHANE
+    30: 280,  # HAKKARİ
+    31: 281,  # HATAY
+    32: 283,  # ISPARTA
+    33: 302,  # MERSİN
+    34: 284,  # İSTANBUL
+    35: 285,  # İZMİR
+    36: 289,  # KARS
+    37: 290,  # KASTAMONU
+    38: 291,  # KAYSERİ
+    39: 293,  # KIRKLARELİ
+    40: 294,  # KIRŞEHİR
+    41: 296,  # KOCAELİ
+    42: 297,  # KONYA
+    43: 298,  # KÜTAHYA
+    44: 299,  # MALATYA
+    45: 300,  # MANİSA
+    46: 286,  # KAHRAMANMARAŞ
+    47: 301,  # MARDİN
+    48: 303,  # MUĞLA
+    49: 304,  # MUŞ
+    50: 305,  # NEVŞEHİR
+    51: 306,  # NİĞDE
+    52: 307,  # ORDU
+    53: 309,  # RİZE
+    54: 310,  # SAKARYA
+    55: 311,  # SAMSUN
+    56: 312,  # SİİRT
+    57: 313,  # SİNOP
+    58: 314,  # SİVAS
+    59: 317,  # TEKİRDAĞ
+    60: 318,  # TOKAT
+    61: 319,  # TRABZON
+    62: 320,  # TUNCELİ
+    63: 315,  # ŞANLIURFA
+    64: 321,  # UŞAK
+    65: 322,  # VAN
+    66: 324,  # YOZGAT
+    67: 325,  # ZONGULDAK
+    68: 249,  # AKSARAY
+    69: 259,  # BAYBURT
+    70: 288,  # KARAMAN
+    71: 292,  # KIRIKKALE
+    72: 258,  # BATMAN
+    73: 316,  # ŞIRNAK
+    74: 257,  # BARTIN
+    75: 253,  # ARDAHAN
+    76: 282,  # IĞDIR
+    77: 323,  # YALOVA
+    78: 287,  # KARABÜK
+    79: 295,  # KİLİS
+    80: 308,  # OSMANİYE
+    81: 271,  # DÜZCE
+}
+
+# Province list with EKAP API-specific IDs (245-325 range)
+# These are the actual API IDs used internally
+PROVINCES = {
+    245: Province(name="ADANA"),
+    246: Province(name="ADIYAMAN"),
+    247: Province(name="AFYONKARAHİSAR"),
+    248: Province(name="AĞRI"),
+    249: Province(name="AKSARAY"),
+    250: Province(name="AMASYA"),
+    251: Province(name="ANKARA"),
+    252: Province(name="ANTALYA"),
+    253: Province(name="ARDAHAN"),
+    254: Province(name="ARTVİN"),
+    255: Province(name="AYDIN"),
+    256: Province(name="BALIKESİR"),
+    257: Province(name="BARTIN"),
+    258: Province(name="BATMAN"),
+    259: Province(name="BAYBURT"),
+    260: Province(name="BİLECİK"),
+    261: Province(name="BİNGÖL"),
+    262: Province(name="BİTLİS"),
+    263: Province(name="BOLU"),
+    264: Province(name="BURDUR"),
+    265: Province(name="BURSA"),
+    266: Province(name="ÇANAKKALE"),
+    267: Province(name="ÇANKIRI"),
+    268: Province(name="ÇORUM"),
+    269: Province(name="DENİZLİ"),
+    270: Province(name="DİYARBAKIR"),
+    271: Province(name="DÜZCE"),
+    272: Province(name="EDİRNE"),
+    273: Province(name="ELAZIĞ"),
+    274: Province(name="ERZİNCAN"),
+    275: Province(name="ERZURUM"),
+    276: Province(name="ESKİŞEHİR"),
+    277: Province(name="GAZİANTEP"),
+    278: Province(name="GİRESUN"),
+    279: Province(name="GÜMÜŞHANE"),
+    280: Province(name="HAKKARİ"),
+    281: Province(name="HATAY"),
+    282: Province(name="IĞDIR"),
+    283: Province(name="ISPARTA"),
+    284: Province(name="İSTANBUL"),
+    285: Province(name="İZMİR"),
+    286: Province(name="KAHRAMANMARAŞ"),
+    287: Province(name="KARABÜK"),
+    288: Province(name="KARAMAN"),
+    289: Province(name="KARS"),
+    290: Province(name="KASTAMONU"),
+    291: Province(name="KAYSERİ"),
+    292: Province(name="KIRIKKALE"),
+    293: Province(name="KIRKLARELİ"),
+    294: Province(name="KIRŞEHİR"),
+    295: Province(name="KİLİS"),
+    296: Province(name="KOCAELİ"),
+    297: Province(name="KONYA"),
+    298: Province(name="KÜTAHYA"),
+    299: Province(name="MALATYA"),
+    300: Province(name="MANİSA"),
+    301: Province(name="MARDİN"),
+    302: Province(name="MERSİN"),
+    303: Province(name="MUĞLA"),
+    304: Province(name="MUŞ"),
+    305: Province(name="NEVŞEHİR"),
+    306: Province(name="NİĞDE"),
+    307: Province(name="ORDU"),
+    308: Province(name="OSMANİYE"),
+    309: Province(name="RİZE"),
+    310: Province(name="SAKARYA"),
+    311: Province(name="SAMSUN"),
+    312: Province(name="SİİRT"),
+    313: Province(name="SİNOP"),
+    314: Province(name="SİVAS"),
+    315: Province(name="ŞANLIURFA"),
+    316: Province(name="ŞIRNAK"),
+    317: Province(name="TEKİRDAĞ"),
+    318: Province(name="TOKAT"),
+    319: Province(name="TRABZON"),
+    320: Province(name="TUNCELİ"),
+    321: Province(name="UŞAK"),
+    322: Province(name="VAN"),
+    323: Province(name="YALOVA"),
+    324: Province(name="YOZGAT"),
+    325: Province(name="ZONGULDAK")
+}
 
 # Proposal Types - API expects numeric IDs
 PROPOSAL_TYPES = {

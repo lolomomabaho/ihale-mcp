@@ -197,3 +197,7 @@ claude_desktop_config.json
 pytest.ini
 README_TESTS.md
 ihale_client_old.py
+find_province_ids.py
+generate_correct_mapping.py
+province_ids.json
+verify_mapping.py

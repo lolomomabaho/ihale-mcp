@@ -12,6 +12,7 @@ from ihale_client import EKAPClient
 from ihale_models import (
     TENDER_TYPES, TENDER_STATUSES, TENDER_METHODS,
     PROVINCES, PROPOSAL_TYPES, ANNOUNCEMENT_TYPES,
+    PLATE_TO_API_ID,
     TenderDocument, TenderInfo, TenderSearchResponse
 )
 
@@ -65,7 +66,7 @@ async def search_tenders(
     cerceve_anlasmasi_mi: Annotated[Optional[bool], "Filter for framework agreements"] = None,
     personel_calistirilmasina_dayali_mi: Annotated[Optional[bool], "Filter for personnel employment based tenders"] = None,
     # List filters  
-    provinces: Annotated[List[int], "Province IDs to filter by"] = None,
+    provinces: Annotated[List[int], "Province plate numbers to filter by (1-81, e.g., 6=Ankara, 34=İstanbul, 35=İzmir)"] = None,
     tender_statuses: Annotated[List[int], "Tender status IDs to filter by"] = None,
     tender_methods: Annotated[List[int], "Tender method IDs to filter by"] = None,
     tender_sub_methods: Annotated[List[int], "Tender sub-method IDs to filter by"] = None,
@@ -100,6 +101,13 @@ async def search_tenders(
     - 3: Hizmet (Services procurement)
     - 4: Danışmanlık (Consultancy services)
     
+    Province filtering uses standard Turkish plate numbers (1-81):
+    - 6: Ankara
+    - 34: İstanbul
+    - 35: İzmir
+    - 16: Bursa
+    - 7: Antalya
+    
     IKN (Ihale Kayt Numarası) format: YEAR/NUMBER (e.g., 2025/1234567)
     - Use ikn_year and ikn_number parameters to filter by specific IKN
     
@@ -126,6 +134,18 @@ async def search_tenders(
         today = datetime.now().strftime("%Y-%m-%d")
         tender_date_start = today
         tender_date_end = None
+    
+    # Convert plate numbers to API IDs
+    api_province_ids = None
+    if provinces:
+        api_province_ids = []
+        for plate_number in provinces:
+            api_id = PLATE_TO_API_ID.get(plate_number)
+            if api_id:
+                api_province_ids.append(api_id)
+        # If no valid plate numbers, set to None to avoid empty filter
+        if not api_province_ids:
+            api_province_ids = None
     
     # Use the client to search tenders
     result = await ekap_client.search_tenders(
@@ -158,8 +178,8 @@ async def search_tenders(
         avans_verilecek_mi=avans_verilecek_mi,
         cerceve_anlasmasi_mi=cerceve_anlasmasi_mi,
         personel_calistirilmasina_dayali_mi=personel_calistirilmasina_dayali_mi,
-        # List filters
-        provinces=provinces,
+        # List filters (provinces converted to API IDs)
+        provinces=api_province_ids,
         tender_statuses=tender_statuses,
         tender_methods=tender_methods,
         tender_sub_methods=tender_sub_methods,
@@ -317,8 +337,7 @@ async def get_recent_tenders(
 
 @mcp.tool
 async def get_tender_announcements(
-    tender_id: Annotated[int, "The tender ID to get announcements for"],
-    include_html: Annotated[bool, "Include full HTML content in response"] = False
+    tender_id: Annotated[int, "The tender ID to get announcements for"]
 ) -> Dict[str, Any]:
     """
     Get all announcements (duyuru) for a specific tender.
@@ -335,7 +354,6 @@ async def get_tender_announcements(
     
     Parameters:
     - tender_id: The ID of the tender (from search_tenders results)
-    - include_html: Whether to include full HTML content (default: False for readability)
     """
     
     # Use the client to get tender announcements (always converts to markdown)
@@ -347,17 +365,10 @@ async def get_tender_announcements(
     # Format the response
     announcements = result.get("announcements", [])
     
-    # Optionally remove HTML content for readability
-    if not include_html:
-        for announcement in announcements:
-            if "html_content" in announcement:
-                del announcement["html_content"]
-    
     return {
         "announcements": announcements,
         "total_announcements": result.get("total_count", 0),
         "tender_id": tender_id,
-        "include_html_content": include_html,
         "announcement_types_found": list(set(ann.get("type", {}).get("description", "Unknown") for ann in announcements))
     }
 
@@ -408,6 +419,7 @@ async def get_tender_details(
             "announcements_count": result.get("announcements_summary", {}).get("total_count", 0)
         }
     }
+
 
 
 def main():

@@ -20,6 +20,7 @@ class EKAPClient:
         self.authority_endpoint = "/b_idare/api/DetsisKurumBirim/DetsisAgaci"
         self.announcements_endpoint = "/b_ihalearama/api/Ilan/GetList"
         self.tender_details_endpoint = "/b_ihalearama/api/IhaleDetay/GetByIhaleIdIhaleDetay"
+        self.document_url_endpoint = "/b_ihalearama/api/EkapDokumanYonlendirme/GetDokumanUrl"
         
         # Common headers for all requests
         self.headers = {
@@ -129,6 +130,9 @@ class EKAPClient:
     ) -> Dict[str, Any]:
         """Search for Turkish government tenders"""
         
+        
+        # Province filtering is now handled by the API directly
+        
         # Build API request payload
         api_params = {
             "searchText": search_text,
@@ -194,15 +198,31 @@ class EKAPClient:
             # Make API request
             response_data = await self._make_request(self.tender_endpoint, api_params)
             
+            
             # Parse and format the response
             tenders = response_data.get("list", [])
             total_count = response_data.get("totalCount", 0)
             
-            # Format each tender for better readability
+            # Province filtering is now handled by the API directly
+            
+            # Format each tender for better readability  
             formatted_tenders = []
             for tender in tenders:
+                tender_id = tender.get("id")
+                
+                # Get document URL for this tender
+                document_url = None
+                if tender_id and tender.get("dokumanSayisi", 0) > 0:
+                    try:
+                        doc_result = await self.get_tender_document_url(tender_id)
+                        if doc_result.get("success"):
+                            document_url = doc_result.get("document_url")
+                    except Exception:
+                        # If document URL fails, continue without it
+                        pass
+                
                 formatted_tender = {
-                    "id": tender.get("id"),
+                    "id": tender_id,
                     "name": tender.get("ihaleAdi"),
                     "ikn": tender.get("ikn"),
                     "type": {
@@ -219,15 +239,18 @@ class EKAPClient:
                     "tender_datetime": tender.get("ihaleTarihSaat"),
                     "document_count": tender.get("dokumanSayisi", 0),
                     "has_announcement": tender.get("ilanVarMi", False),
-                    "ekap_url": f"https://ekapv2.kik.gov.tr/ekap/tender/{tender.get('id')}" if tender.get('id') else None
+                    "document_url": document_url
                 }
                 formatted_tenders.append(formatted_tender)
             
-            return {
+            result = {
                 "tenders": formatted_tenders,
                 "total_count": total_count,
                 "returned_count": len(formatted_tenders)
             }
+            
+            # Province filtering is now handled by the API directly
+            return result
             
         except httpx.HTTPStatusError as e:
             return {
@@ -501,7 +524,6 @@ class EKAPClient:
                     "tender_id": announcement.get("ihaleId"),
                     "contract_id": announcement.get("sozlesmeId"),
                     "bidder_name": announcement.get("istekliAdi"),
-                    "html_content": html_content,
                     "markdown_content": markdown_content,
                     "content_preview": self._extract_text_preview(html_content)
                 })
@@ -657,7 +679,6 @@ class EKAPClient:
                     "title": announcement.get("baslik"),
                     "date": announcement.get("ilanTarihi"),
                     "status": announcement.get("status"),
-                    "html_content": html_content,
                     "markdown_content": markdown_content,
                     "content_preview": self._extract_text_preview(html_content)
                 })
@@ -721,4 +742,51 @@ class EKAPClient:
             return {
                 "error": "Request failed - tender details",
                 "message": str(e)
+            }
+    
+    async def get_tender_document_url(
+        self,
+        tender_id: int,
+        islem_id: str = "1"
+    ) -> Dict[str, Any]:
+        """Get document URL for a specific tender"""
+        
+        # Build API request payload for document URL
+        document_params = {
+            "islemId": islem_id,
+            "ihaleId": tender_id
+        }
+        
+        try:
+            # Make API request to document URL endpoint
+            response_data = await self._make_request(self.document_url_endpoint, document_params)
+            
+            # Return the URL directly
+            document_url = response_data.get("url")
+            
+            if document_url:
+                return {
+                    "document_url": document_url,
+                    "tender_id": tender_id,
+                    "islem_id": islem_id,
+                    "success": True
+                }
+            else:
+                return {
+                    "error": "No document URL found",
+                    "tender_id": tender_id,
+                    "success": False
+                }
+            
+        except httpx.HTTPStatusError as e:
+            return {
+                "error": f"API request failed with status {e.response.status_code}",
+                "message": str(e),
+                "success": False
+            }
+        except Exception as e:
+            return {
+                "error": "Request failed - tender document URL",
+                "message": str(e),
+                "success": False
             }
