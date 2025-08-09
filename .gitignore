@@ -179,3 +179,21 @@ cython_debug/
 #  refer to https://docs.cursor.com/context/ignore-files
 .cursorignore
 .cursorindexingignore
+
+# Test files
+test_*.py
+*test*.py
+
+# Debug files
+debug_*.py
+*debug*.py
+
+# Documentation files
+CLAUDE.md
+
+# Example files
+hello.py
+claude_desktop_config.json
+pytest.ini
+README_TESTS.md
+ihale_client_old.py
