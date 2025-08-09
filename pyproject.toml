@@ -1,9 +1,9 @@
 [project]
 name = "ihale-mcp"
-version = "0.1.0"
-description = "Add your description here"
+version = "0.1.0"               
+description = "MCP Server for Turkish Government Tenders (İhale)"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.11"       
 dependencies = [
     "fastmcp>=2.10.6",
     "httpx>=0.28.1",
@@ -11,6 +11,14 @@ dependencies = [
     "pydantic>=2.11.7",
     "typing-extensions>=4.14.1",
 ]
+
+
+[project.scripts]
+ihale-mcp = "ihale_mcp:main"
+
+
+[tool.setuptools]
+py-modules = ["ihale_mcp", "ihale_client", "ihale_models"]
 
 [dependency-groups]
 dev = [
