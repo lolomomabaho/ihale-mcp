@@ -90,32 +90,11 @@ async def search_tenders(
     skip: Annotated[int, "Number of results to skip for pagination"] = 0
 ) -> Dict[str, Any]:
     """
-    Search for Turkish government tenders using the EKAP v2 portal.
+    Search Turkish government tenders from EKAP v2 portal.
     
-    This tool searches through active and historical government procurement announcements.
-    Results include tender details like name, type, authority, location, dates, and status.
-    
-    Common tender types:
-    - 1: Mal (Goods/Equipment procurement)  
-    - 2: Yapım (Construction/Infrastructure projects)
-    - 3: Hizmet (Services procurement)
-    - 4: Danışmanlık (Consultancy services)
-    
-    Province filtering uses standard Turkish plate numbers (1-81):
-    - 6: Ankara
-    - 34: İstanbul
-    - 35: İzmir
-    - 16: Bursa
-    - 7: Antalya
-    
-    IKN (Ihale Kayt Numarası) format: YEAR/NUMBER (e.g., 2025/1234567)
-    - Use ikn_year and ikn_number parameters to filter by specific IKN
-    
-    Date filters:
-    - announcement_date_filter: 'today' for today's announcements, 'date_range' for custom range
-    - tender_date_filter: 'from_today' for tenders from today onwards, 'date_range' for custom range
-    
-    All dates should be in YYYY-MM-DD format (e.g., "2025-01-15").
+    Tender types: 1=Mal, 2=Yapım, 3=Hizmet, 4=Danışmanlık
+    Provinces: Use plate numbers (6=Ankara, 34=İstanbul, 35=İzmir)
+    IKN format: YEAR/NUMBER, dates: YYYY-MM-DD
     """
     
     # Validate limit
@@ -228,17 +207,10 @@ async def search_okas_codes(
     limit: Annotated[int, "Maximum number of results to return (1-500)"] = 50
 ) -> Dict[str, Any]:
     """
-    Search OKAS (public procurement classification) codes using the live EKAP v2 API.
+    Search OKAS procurement classification codes.
     
-    OKAS is the Turkish public procurement classification system.
-    Use this tool to find relevant OKAS codes for tender searches.
-    
-    Parameters:
-    - search_term: Search in OKAS descriptions (Turkish terms work best)
-    - kalem_turu: Filter by item type (1=Goods, 2=Service, 3=Construction)
-    - limit: Maximum number of results to return
-    
-    Returns matching OKAS codes with their descriptions and categories from the live API.
+    Item types: 1=Goods, 2=Service, 3=Construction
+    Search in Turkish descriptions for best results.
     """
     
     # Use the client to search OKAS codes
@@ -255,18 +227,10 @@ async def search_authorities(
     limit: Annotated[int, "Maximum number of results to return (1-500)"] = 50
 ) -> Dict[str, Any]:
     """
-    Search Turkish government authorities/institutions using the live EKAP v2 API.
+    Search Turkish government authorities/institutions.
     
-    This tool searches for government institutions, ministries, municipalities, and other
-    public authorities that issue tenders. Use this to find authority IDs for filtering
-    tender searches.
-    
-    Parameters:
-    - search_term: Search in authority names (Turkish terms work best)  
-    - limit: Maximum number of results to return
-    
-    Returns matching authorities with their IDs, names, and hierarchical information
-    from the live EKAP API.
+    Find ministries, municipalities, universities for tender filtering.
+    Search in Turkish for best results.
     """
     
     # Use the client to search authorities
@@ -283,15 +247,8 @@ async def get_recent_tenders(
     limit: Annotated[int, "Maximum number of results (1-100)"] = 20
 ) -> Dict[str, Any]:
     """
-    Get recently announced tenders from the last N days.
-    
-    This is a convenience function to quickly see recent tender activity.
-    Searches for tenders announced in the specified number of days.
-    
-    Parameters:
-    - days: How many days back to search (default: 7)
-    - tender_types: Filter by specific tender types (optional)
-    - limit: Maximum number of results to return (default: 20)
+    Get recent tenders from last N days.
+    Convenience function for recent tender activity.
     """
     
     if days > 30:
@@ -340,20 +297,9 @@ async def get_tender_announcements(
     tender_id: Annotated[int, "The tender ID to get announcements for"]
 ) -> Dict[str, Any]:
     """
-    Get all announcements (duyuru) for a specific tender.
+    Get all announcements for a tender with HTML-to-Markdown conversion.
     
-    This tool retrieves detailed announcement information for a tender, including:
-    - Preliminary notices (Ön İlan)
-    - Tender announcements (İhale İlanı)
-    - Result announcements (Sonuç İlanı)
-    - Cancellation notices (İptal İlanı)
-    - And other announcement types
-    
-    Each announcement includes the full legal text and requirements.
-    Use this to get the complete tender documentation and announcements.
-    
-    Parameters:
-    - tender_id: The ID of the tender (from search_tenders results)
+    Returns: Ön İlan, İhale İlanı, Sonuç İlanı, İptal İlanı, etc.
     """
     
     # Use the client to get tender announcements (always converts to markdown)
@@ -378,25 +324,10 @@ async def get_tender_details(
     tender_id: Annotated[int, "The tender ID to get comprehensive details for"]
 ) -> Dict[str, Any]:
     """
-    Get comprehensive details for a specific tender.
+    Get comprehensive tender details with HTML-to-Markdown conversion.
     
-    This tool retrieves detailed information about a tender including:
-    - Basic tender information (name, IKN, status, dates, location)
-    - Tender characteristics and requirements
-    - OKAS classification codes
-    - Authority/institution details with contact information
-    - Process rules and permissions
-    - Announcements summary with automatic HTML-to-Markdown conversion
-    - Cancellation information (if applicable)
-    
-    All HTML content in announcements is automatically converted to readable
-    Markdown format using BytesIO (no temporary files needed).
-    
-    This provides a complete overview of the tender in a structured format,
-    perfect for understanding all aspects of a procurement opportunity.
-    
-    Parameters:
-    - tender_id: The ID of the tender (from search_tenders results)
+    Returns: basic info, characteristics, OKAS codes, authority details, 
+    process rules, announcements summary, cancellation info if applicable.
     """
     
     # Use the client to get tender details
