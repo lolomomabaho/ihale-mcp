@@ -33,7 +33,7 @@ Bu bölüm, İhale MCP aracını 5ire gibi Claude Desktop dışındaki MCP istem
     * **Name:** `İhale MCP`
     * **Command:**
         ```
-        uvx ihale-mcp
+        uvx --from git+https://github.com/saidsurucu/ihale-mcp ihale-mcp
         ```
     * **Save** butonuna basarak kaydedin.
 * Şimdi **Tools** altında **İhale MCP**'yi görüyor olmalısınız. Üstüne geldiğinizde sağda çıkan butona tıklayıp etkinleştirin (yeşil ışık yanmalı).
@@ -52,7 +52,8 @@ Bu bölüm, İhale MCP aracını 5ire gibi Claude Desktop dışındaki MCP istem
         "İhale MCP": {
           "command": "uvx",
           "args": [
-            "ihale-mcp"
+           "--from", "git+https://github.com/saidsurucu/ihale-mcp",
+           "ihale-mcp"
           ]
         }
       }
